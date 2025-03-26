@@ -1,0 +1,43 @@
+---
+services:
+  phpipam-web:
+    image: phpipam/phpipam-www:latest
+    container_name: phpipam-front
+    ports:
+       - "80:80"
+    environment:
+      - TZ=Europe/Paris
+      - IPAM_DATABASE_HOST=phpipam-mariadb
+      - IPAM_DATABASE_USER=phpipam-db-user
+      - IPAM_DATABASE_PASS=${IPAM_DATABASE_PASS}
+      - IPAM_DATABASE_WEBHOST=%
+      - IPAM_TRUST_X_FORWARDED=true # Nécessaire si derrière un reverse proxy
+      - IPAM_DISABLE_INSTALLER=1 # Mettre cette ligne à 1 une fois l'install réalisé
+    volumes:
+      - ./phpipam-logo:/phpipam/css/images/logo
+      - ./phpipam-ca:/usr/local/share/ca-certificates:ro
+    depends_on:
+      - phpipam-mariadb
+    restart: unless-stopped
+
+  phpipam-cron:
+    container_name: phpipam-cron
+    image: phpipam/phpipam-cron:latest
+    environment:
+      - TZ=Europe/Paris
+      - IPAM_DATABASE_HOST=phpipam-mariadb
+      - IPAM_DATABASE_PASS=${IPAM_DATABASE_PASS}
+    volumes:
+      - ./phpipam-ca:/usr/local/share/ca-certificates:ro
+    depends_on:
+      - phpipam-mariadb
+    restart: unless-stopped
+
+  phpipam-mariadb:
+    container_name: phpipam-db
+    image: mariadb:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./phpipam-db-data:/var/lib/mysql
+    restart: unless-stopped
