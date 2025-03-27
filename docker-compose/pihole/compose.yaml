@@ -1,0 +1,44 @@
+---
+services:
+  pihole:
+    container_name: pihole
+    hostname: pihole.domain.tld
+    image: pihole/pihole:latest
+    networks:
+      pihole:
+        ipv4_address: 10.0.0.100
+    ports:
+      # DNS Ports
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80/tcp"
+      - "443:443/tcp"
+      # Si Pi-hole utilisé en tant que serveur DHCP
+      #- "67:67/udp"
+      # Si Pi-hole utilisé en tant que serveur 
+      #- "123:123/udp"
+    cap_add:
+      # Voir https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+      # Nécéssaire si vous utilisez Pi-hole en tant que serveur DHCP
+      - NET_ADMIN
+      # Nécéssaire si vous utilisez Pi-hole en tant que serveur NTP
+      - SYS_TIME
+    environment:
+      TZ: "Europe/Paris"
+      WEBPASSWORD: ${WEBPASSWORD}
+      FTLCONF_LOCAL_IPV4: 192.168.1.2
+      PIHOLE_DNS_: 8.8.8.8;1.1.1.1 # Upstream DNS Servers
+      VIRTUAL_HOST: pihole.domain.tld
+      WEBTHEME: default-dark
+    volumes:
+      - "./config/pihole:/etc/pihole"
+      - "./config/dnsmasq.d:/etc/dnsmasq.d"
+    restart: unless-stopped
+
+networks:
+  pihole:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/24
