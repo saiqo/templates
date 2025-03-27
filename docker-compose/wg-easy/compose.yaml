@@ -22,7 +22,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Paris
-      - WG_HOST=vpn.yourdomain.tld
+      - WG_HOST=vpn.domain.tld
       - WG_PORT=51820
       - WG_CONFIG_PORT=51820
       - PASSWORD_HASH=PASSWORD_HASHED # docker run ghcr.io/wg-easy/wg-easy wgpw YOUR_PASSWORD
