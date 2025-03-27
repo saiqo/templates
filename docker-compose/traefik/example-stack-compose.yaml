@@ -1,0 +1,24 @@
+# Exemple de stack docker utilisant Traefik
+---
+services:
+  kanboard:
+    image: kanboard/kanboard:latest
+    container_name: kanboard
+    networks:
+      proxy_net:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy_net"
+      - "traefik.http.routers.kanboard.rule=Host(`kanboard.domain.tld`)"
+      - "traefik.http.routers.kanboard.tls=true"
+      - "traefik.http.routers.kanboard.entrypoints=https"
+      - "traefik.http.services.kanboard.loadbalancer.server.port=80"
+    volumes:
+      - ./kanboard_data:/var/www/app/data
+      - ./kanboard_plugins:/var/www/app/plugins
+      - ./kanboard_ssl:/etc/nginx/ssl
+    restart: unless-stopped
+
+networks:
+  proxy_net:
+    external: true
