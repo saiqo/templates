@@ -1,0 +1,122 @@
+---
+services:
+  postgres:
+    container_name: postgres
+    image: ${ZABBIX_POSTGRES_IMAGE_TAG}
+    volumes:
+      - ./zabbix-postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${ZABBIX_DB_NAME}
+      POSTGRES_USER: ${ZABBIX_DB_USER}
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD}
+    networks:
+      - zabbix_net
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "${ZABBIX_DB_NAME}", "-U", "${ZABBIX_DB_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  zabbix-server:
+    container_name: zabbix-server
+    image: ${ZABBIX_SERVER_IMAGE_TAG}
+    volumes:
+      - ./zabbix-server-data:/var/lib/zabbix
+      - ./zabbix-snmptraps-data:/var/lib/zabbix/snmptraps
+      - ./zabbix-export-data:/var/lib/zabbix/export
+    dns:
+      - 10.0.0.100 # Custom DNS server (exemple: IP du conteneur Pi-hole)
+    environment:
+      DB_SERVER_HOST: postgres
+      DB_SERVER_PORT: 5432
+      POSTGRES_DB: ${ZABBIX_DB_NAME}
+      POSTGRES_USER: ${ZABBIX_DB_USER}
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD}
+      ZBX_CACHESIZE: ${ZABBIX_CACHESIZE}
+    networks:
+      - zabbix_net
+      - front_net
+    ports:
+      - "10051:10051"
+    healthcheck:
+      test: grep -qr "zabbix_server" /proc/*/status || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  zabbix-dashboard:
+    container_name: zabbix-dashboard
+    image: ${ZABBIX_WEB_IMAGE_TAG}
+    ports:
+      - "8080:8080"
+    environment:
+      DB_SERVER_HOST: postgres
+      DB_SERVER_PORT: 5432
+      POSTGRES_DB: ${ZABBIX_DB_NAME}
+      POSTGRES_USER: ${ZABBIX_DB_USER}
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD}
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: ${ZABBIX_TIMEZONE}
+    networks:
+      - zabbix_net
+      - front_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_healthy
+
+  zabbix-snmptraps:
+    container_name: zabbix-snmptrap
+    image: ${ZABBIX_SNMPTRAP_IMAGE_TAG}
+    volumes:
+      - ./zabbix-snmptraps-data:/var/lib/zabbix/snmptraps:rw
+    networks:
+      - zabbix_net
+    ports:
+      - "162:1162/udp"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_healthy
+
+  zabbix-agent:
+    container_name: zabbix-agent
+    image: ${ZABBIX_AGENT_IMAGE_TAG}
+    environment:
+      ZBX_HOSTNAME: Zabbix server
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_SERVER_PORT: '10051'
+      ZBX_SERVER_ACTIVE: zabbix-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    group_add:
+      - "992" # Ajout de l'utilisateur au grouper docker
+    networks:
+      - zabbix_net
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - zabbix-server
+
+networks:
+  front_net:
+    driver: bridge
+  zabbix_net:
+    driver: bridge
