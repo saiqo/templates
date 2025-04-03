@@ -33,7 +33,7 @@ resource "proxmox_virtual_environment_vm" "vm-proxmox" {
 	disk {
 		datastore_id = "local-lvm"
 		interface    = "scsi0"
-		size    = 30 # Taille en Giga, Facultatif. Si renseigné, doit être + grand que le disque de la vm (resize)
+		size    = 30 # Taille en Giga, Facultatif. Si renseigné, doit être + grand que le disque du template(resize)
 	}
 
 	initialization {
@@ -43,7 +43,6 @@ resource "proxmox_virtual_environment_vm" "vm-proxmox" {
                 gateway = "192.168.1.1"
             }
         }
-
 		dns {
 			servers = ["1.1.1.1", "8.8.8.8"]
 		}
