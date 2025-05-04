@@ -1,0 +1,12 @@
+---
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    environment:
+      - PUID=1001
+      - PGID=1001
+      # HOMEPAGE_ALLOWED_HOSTS: homepage.domain.tld -> Uncomment if homepage is used behind a reverse proxy
+    volumes:
+      - ./config:/app/config
+    restart: unless-stopped

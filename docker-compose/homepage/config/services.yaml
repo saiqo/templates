@@ -1,0 +1,52 @@
+---
+- Infra:
+    - Firewall OPNsense :
+        icon: opnsense.svg
+        href: https://opnsense.domain.tld
+        description: Firewall
+    - Supervision :
+        icon: zabbix.svg
+        href: https://zabbix.domain.tld
+        description: Supervision infra
+    - Technitium:
+        icon: technitium.png
+        href: https://ns1.domain.tld
+        description: DNS & DHCP
+    - IPAM:
+        icon: phpipam.png
+        href: https://ipam.domain.tld
+        description: IPAM
+    - Wireguard:
+        icon: wireguard.svg
+        href: https://wireguard.domain.tld
+        description: VPN
+    - Truenas:
+        icon: truenas.png
+        href: https://truenas.domain.tld
+        description: Truenas
+    - Proxmox :
+        icon: proxmox.svg
+        href: https://proxmox.domain.tld
+        description: Proxmox 
+    - Traefik :
+        icon: traefik.svg
+        href: https://traefik.domain.tld
+        description: Reverse proxy
+
+- House:
+    - Photos :
+        icon: immich.svg
+        href: https://photos.domain.tld
+        description: Gestion et sauvegarde des photos
+    - Homebox :
+        icon: homebox.svg
+        href: https://homebox.domain.tld
+        description: Gestion de l'inventaire
+    - FreshRSS :
+        icon: freshrss.svg
+        href: https://freshrss.domain.tld
+        description: Flux RSS
+    - Kanboard :
+        icon: kanboard.svg
+        href: https://kanboard.domain.tld
+        description: Gestion des tâches (gestion de projet)
